@@ -1,0 +1,400 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+  color: #f7fbff;
+  user-select: none;
+}
+
+.widget {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  margin: 5px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(15, 21, 28, 0.78);
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  -webkit-app-region: drag;
+}
+
+.topbar,
+.status,
+.match-item,
+.match-row,
+.scoreboard,
+.details {
+  display: flex;
+  align-items: center;
+}
+
+.view {
+  display: none;
+  min-height: 0;
+}
+
+.view.active {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.topbar {
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.title-block {
+  min-width: 0;
+}
+
+.centered-title {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.left-actions {
+  min-width: 26px;
+}
+
+.title {
+  color: #f7fbff;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+.subtitle {
+  color: #aeb9c4;
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.window-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.icon-button {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #dbe5ed;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.icon-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.close-button {
+  font-size: 20px;
+}
+
+.close-button:hover {
+  background: rgba(232, 72, 85, 0.88);
+}
+
+.match-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  -webkit-app-region: no-drag;
+  scrollbar-color: rgba(146, 224, 189, 0.32) transparent;
+  scrollbar-width: thin;
+}
+
+.scoreboard {
+  flex: 1 1 auto;
+  min-height: 118px;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.team {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 34%;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home {
+  text-align: left;
+}
+
+.guest {
+  text-align: right;
+}
+
+.score {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 92px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.state {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(80, 203, 132, 0.18);
+  color: #8af0b4;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 16px;
+}
+
+.score-line {
+  display: block;
+  color: #fff;
+  font-size: clamp(30px, 13vw, 46px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.dash {
+  padding: 0 2px;
+  color: #7e8b99;
+  font-size: 28px;
+  vertical-align: 6px;
+}
+
+.details {
+  gap: 8px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  color: #c8d3dc;
+  font-size: 11px;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.details span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.match-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.match-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(146, 224, 189, 0.24);
+}
+
+.match-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(146, 224, 189, 0.42);
+}
+
+.match-list::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.match-item {
+  width: 100%;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.22);
+  color: #edf5fb;
+  cursor: pointer;
+  text-align: left;
+}
+
+.match-item:hover,
+.match-item.active {
+  background: rgba(66, 215, 131, 0.18);
+}
+
+.match-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.match-row {
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.league-tag {
+  max-width: 92px;
+  overflow: hidden;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(146, 224, 189, 0.18);
+  color: #92e0bd;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-time {
+  color: #dbe5ed;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.match-teams {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #f7fbff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-score {
+  flex: 0 0 auto;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 310px), (max-height: 250px) {
+  .widget {
+    margin: 4px;
+    padding: 8px;
+  }
+
+  .subtitle,
+  .details {
+    display: none;
+  }
+
+  .title {
+    font-size: 13px;
+  }
+
+  .icon-button {
+    width: 24px;
+    height: 24px;
+  }
+
+  .match-item {
+    padding: 6px 7px;
+  }
+
+  .league-tag {
+    max-width: 76px;
+  }
+
+  .scoreboard {
+    min-height: 96px;
+  }
+
+  .team {
+    font-size: 14px;
+  }
+
+  .score {
+    min-width: 78px;
+  }
+}
+
+.list-message {
+  padding: 52px 8px;
+  color: #aeb9c4;
+  font-size: 12px;
+  text-align: center;
+}
+
+.list-message.error {
+  color: #ff8997;
+}
+
+.status {
+  flex: 0 0 auto;
+  justify-content: space-between;
+  gap: 7px;
+  padding-top: 7px;
+  color: #aeb9c4;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7e8b99;
+}
+
+.dot[data-status="ok"] {
+  background: #42d783;
+  box-shadow: 0 0 9px rgba(66, 215, 131, 0.62);
+}
+
+.dot[data-status="warn"] {
+  background: #f1bf4c;
+}
+
+.dot[data-status="error"] {
+  background: #ef5b6d;
+}
+
+#statusText {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refresh-time {
+  flex: 0 0 auto;
+  color: #dbe5ed;
+  font-variant-numeric: tabular-nums;
+}

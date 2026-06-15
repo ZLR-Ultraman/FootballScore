@@ -1,0 +1,57 @@
+{
+  "name": "get-score-floating-window",
+  "version": "1.0.0",
+  "description": "A small always-on-top football score floating window for Titan007 live matches.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win nsis --x64"
+  },
+  "keywords": [
+    "electron",
+    "football",
+    "score",
+    "titan007"
+  ],
+  "author": "",
+  "license": "MIT",
+  "build": {
+    "appId": "com.getscore.floatingwindow",
+    "productName": "实时比分悬浮窗",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "styles.css",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "实时比分悬浮窗"
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.15.3"
+  }
+}
