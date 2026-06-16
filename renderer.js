@@ -1,35 +1,23 @@
 const elements = {
-  listView: document.getElementById("listView"),
-  detailView: document.getElementById("detailView"),
   summaryText: document.getElementById("summaryText"),
   matchList: document.getElementById("matchList"),
-  detailLeague: document.getElementById("detailLeague"),
-  detailKickoff: document.getElementById("detailKickoff"),
-  homeTeam: document.getElementById("homeTeam"),
-  guestTeam: document.getElementById("guestTeam"),
-  homeScore: document.getElementById("homeScore"),
-  guestScore: document.getElementById("guestScore"),
-  matchState: document.getElementById("matchState"),
-  weather: document.getElementById("weather"),
-  venue: document.getElementById("venue"),
   statusDot: document.getElementById("statusDot"),
   statusText: document.getElementById("statusText"),
   refreshTime: document.getElementById("refreshTime"),
   closeButton: document.getElementById("closeButton"),
-  detailCloseButton: document.getElementById("detailCloseButton"),
-  backButton: document.getElementById("backButton"),
   refreshListButton: document.getElementById("refreshListButton")
 };
 
 let config = null;
 let refreshTimer = null;
-let selectedMatchId = null;
-let currentView = "list";
+const openedMatchIds = new Set();
 
 elements.closeButton.addEventListener("click", () => window.scoreApp.closeWindow());
-elements.detailCloseButton.addEventListener("click", () => window.scoreApp.closeWindow());
-elements.backButton.addEventListener("click", showListView);
 elements.refreshListButton.addEventListener("click", () => loadLiveMatchList({ manual: true }));
+window.scoreApp.onDetailClosed((matchId) => {
+  openedMatchIds.delete(matchId);
+  refreshOpenStates();
+});
 
 function formatTime(isoString) {
   const date = isoString ? new Date(isoString) : new Date();
@@ -46,26 +34,7 @@ function setStatus(type, message) {
   elements.statusText.textContent = message;
 }
 
-function showListView() {
-  currentView = "list";
-  elements.listView.classList.add("active");
-  elements.detailView.classList.remove("active");
-  restartTimer();
-  loadLiveMatchList();
-}
-
-function showDetailView() {
-  currentView = "detail";
-  elements.detailView.classList.add("active");
-  elements.listView.classList.remove("active");
-  restartTimer();
-}
-
 async function loadLiveMatchList(options = {}) {
-  if (currentView !== "list" && !options.force) {
-    return;
-  }
-
   if (options.manual) {
     setStatus("warn", "正在刷新...");
   }
@@ -94,57 +63,33 @@ async function loadLiveMatchList(options = {}) {
 
   elements.matchList.innerHTML = matches.map(renderMatchItem).join("");
   elements.matchList.querySelectorAll(".match-item").forEach((button) => {
-    button.addEventListener("click", () => selectMatch(button.dataset.matchId));
+    button.addEventListener("click", () => openMatchDetail(button.dataset.matchId));
   });
   setStatus("ok", "已更新");
 }
 
-async function refreshScore() {
-  if (currentView !== "detail") {
-    return;
-  }
+async function openMatchDetail(matchId) {
+  setStatus("warn", "正在打开看板...");
+  const result = await window.scoreApp.openDetailWindow(matchId);
 
-  const result = await window.scoreApp.fetchScore();
   if (!result.ok) {
-    setStatus("warn", `连接异常，重试中：${result.error}`);
+    setStatus("error", result.error || "打开失败");
     return;
   }
 
-  renderScore(result.data);
-  setStatus("ok", "已更新");
+  openedMatchIds.add(result.matchId);
+  refreshOpenStates();
+  setStatus("ok", `已打开 ${result.matchId}`);
 }
 
-async function selectMatch(matchId) {
-  selectedMatchId = matchId;
-  setStatus("warn", "正在切换比赛...");
-
-  const result = await window.scoreApp.setMatch(matchId);
-  if (!result.ok) {
-    setStatus("error", result.error || "选择失败");
-    return;
-  }
-
-  config = result.config;
-  renderScore(result.data);
-  showDetailView();
-  setStatus("ok", `已选择 ${matchId}`);
-}
-
-function renderScore(data) {
-  elements.detailLeague.textContent = data.round ? `${data.league} · ${data.round}` : data.league || "赛事";
-  elements.detailKickoff.textContent = data.startTime || "--";
-  elements.homeTeam.textContent = data.homeTeam || "主队";
-  elements.guestTeam.textContent = data.guestTeam || "客队";
-  elements.homeScore.textContent = data.homeScore;
-  elements.guestScore.textContent = data.guestScore;
-  elements.matchState.textContent = data.stateText || data.mStateText || "";
-  elements.weather.textContent = [data.weather, data.temperature].filter(Boolean).join(" ") || "--";
-  elements.venue.textContent = data.venue || "--";
-  elements.refreshTime.textContent = formatTime(data.refreshedAt);
+function refreshOpenStates() {
+  elements.matchList.querySelectorAll(".match-item").forEach((item) => {
+    item.classList.toggle("active", openedMatchIds.has(item.dataset.matchId));
+  });
 }
 
 function renderMatchItem(match) {
-  const isActive = match.matchId === selectedMatchId;
+  const isActive = openedMatchIds.has(match.matchId);
 
   return `
     <button class="match-item${isActive ? " active" : ""}" type="button" data-match-id="${escapeHtml(match.matchId)}">
@@ -174,14 +119,11 @@ function restartTimer() {
     window.clearInterval(refreshTimer);
   }
 
-  const refresh = currentView === "detail" ? refreshScore : loadLiveMatchList;
-  refreshTimer = window.setInterval(refresh, config.refreshIntervalMs);
+  refreshTimer = window.setInterval(loadLiveMatchList, config.refreshIntervalMs);
 }
 
 async function start() {
   config = await window.scoreApp.getConfig();
-  selectedMatchId = null;
-  currentView = "list";
   await loadLiveMatchList();
   restartTimer();
 }

@@ -17,7 +17,7 @@
   "license": "MIT",
   "build": {
     "appId": "com.getscore.floatingwindow",
-    "productName": "实时比分悬浮窗",
+    "productName": "Football Score Floating",
     "directories": {
       "output": "release"
     },
@@ -25,7 +25,9 @@
       "main.js",
       "preload.js",
       "renderer.js",
+      "detailRenderer.js",
       "index.html",
+      "detail.html",
       "styles.css",
       "assets/**/*",
       "package.json"
@@ -47,7 +49,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "实时比分悬浮窗"
+      "shortcutName": "Football Score Floating"
     }
   },
   "devDependencies": {

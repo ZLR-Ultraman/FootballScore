@@ -8,7 +8,7 @@
   </head>
   <body>
     <main class="widget">
-      <section class="view active" id="listView">
+      <section class="view active">
         <header class="topbar">
           <div class="title-block">
             <div class="title">进行中比赛</div>
@@ -22,39 +22,6 @@
 
         <section class="match-list" id="matchList" aria-live="polite">
           <div class="list-message">正在加载...</div>
-        </section>
-      </section>
-
-      <section class="view" id="detailView">
-        <header class="topbar">
-          <div class="window-actions left-actions">
-            <button class="icon-button" id="backButton" type="button" aria-label="返回列表" title="返回列表">‹</button>
-          </div>
-          <div class="title-block centered-title">
-            <div class="title" id="detailLeague">赛事</div>
-            <div class="subtitle" id="detailKickoff">--</div>
-          </div>
-          <div class="window-actions">
-            <button class="icon-button close-button" id="detailCloseButton" type="button" aria-label="关闭" title="关闭">×</button>
-          </div>
-        </header>
-
-        <section class="scoreboard" aria-live="polite">
-          <div class="team home" id="homeTeam">主队</div>
-          <div class="score">
-            <span class="state" id="matchState">读取中</span>
-            <span class="score-line">
-              <span id="homeScore">-</span>
-              <span class="dash">:</span>
-              <span id="guestScore">-</span>
-            </span>
-          </div>
-          <div class="team guest" id="guestTeam">客队</div>
-        </section>
-
-        <section class="details">
-          <span id="weather">--</span>
-          <span id="venue">--</span>
         </section>
       </section>
 

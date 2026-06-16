@@ -1,18 +1,16 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
-const fs = require("fs");
 const path = require("path");
 
-const DEFAULT_MATCH_ID = "2906758";
 const REFRESH_INTERVAL_MS = 2000;
 const LIVE_LIST_URL = "https://bf.titan007.com/vbsxml/bfdata_ut.js";
-const WINDOW_WIDTH = 340;
-const WINDOW_COMPACT_HEIGHT = 300;
+const LIST_WINDOW_WIDTH = 340;
+const LIST_WINDOW_HEIGHT = 300;
+const DETAIL_WINDOW_WIDTH = 340;
+const DETAIL_WINDOW_HEIGHT = 300;
 
-let currentMatchId = DEFAULT_MATCH_ID;
-
-function getConfigPath() {
-  return path.join(app.getPath("userData"), "config.json");
-}
+let listWindow = null;
+const detailWindows = new Map();
+const detailWindowMatchIds = new Map();
 
 function getHeaderUrl(matchId) {
   return `https://livestatic.titan007.com/phone/txt/analysisheader/cn/${matchId.slice(0, 1)}/${matchId.slice(1, 3)}/${matchId}.txt`;
@@ -29,27 +27,8 @@ function normalizeMatchInput(input) {
   return match[1];
 }
 
-function loadConfig() {
-  try {
-    const raw = fs.readFileSync(getConfigPath(), "utf8");
-    const saved = JSON.parse(raw);
-    currentMatchId = normalizeMatchInput(saved.matchId || DEFAULT_MATCH_ID);
-  } catch {
-    currentMatchId = DEFAULT_MATCH_ID;
-  }
-}
-
-function saveConfig() {
-  fs.mkdirSync(path.dirname(getConfigPath()), { recursive: true });
-  fs.writeFileSync(getConfigPath(), JSON.stringify({ matchId: currentMatchId }, null, 2), "utf8");
-}
-
-function createWindow() {
+function createBaseWindow(options) {
   const window = new BrowserWindow({
-    width: WINDOW_WIDTH,
-    height: WINDOW_COMPACT_HEIGHT,
-    minWidth: 280,
-    minHeight: 220,
     frame: false,
     transparent: true,
     resizable: true,
@@ -59,12 +38,84 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
-    }
+      nodeIntegration: false,
+      additionalArguments: options.additionalArguments || []
+    },
+    ...options.browser
   });
 
   window.setAlwaysOnTop(true, "screen-saver");
-  window.loadFile("index.html");
+  return window;
+}
+
+function createListWindow() {
+  listWindow = createBaseWindow({
+    browser: {
+      width: LIST_WINDOW_WIDTH,
+      height: LIST_WINDOW_HEIGHT,
+      minWidth: 280,
+      minHeight: 220
+    }
+  });
+
+  listWindow.on("closed", () => {
+    listWindow = null;
+    closeAllDetailWindows();
+  });
+
+  listWindow.loadFile("index.html");
+}
+
+function createDetailWindow(matchId) {
+  const existing = detailWindows.get(matchId);
+  if (existing && !existing.isDestroyed()) {
+    existing.show();
+    existing.focus();
+    return existing;
+  }
+
+  const index = detailWindows.size;
+  const detailWindow = createBaseWindow({
+    additionalArguments: [`--match-id=${matchId}`],
+    browser: {
+      width: DETAIL_WINDOW_WIDTH,
+      height: DETAIL_WINDOW_HEIGHT,
+      minWidth: 280,
+      minHeight: 220,
+      x: 80 + index * 28,
+      y: 80 + index * 28
+    }
+  });
+
+  const webContentsId = detailWindow.webContents.id;
+  detailWindows.set(matchId, detailWindow);
+  detailWindowMatchIds.set(webContentsId, matchId);
+  detailWindow.on("closed", () => {
+    detailWindows.delete(matchId);
+    detailWindowMatchIds.delete(webContentsId);
+    notifyListWindow("match:detail-closed", matchId);
+  });
+  detailWindow.loadFile("detail.html");
+
+  return detailWindow;
+}
+
+function closeAllDetailWindows() {
+  const windows = Array.from(detailWindows.values());
+  detailWindows.clear();
+  detailWindowMatchIds.clear();
+
+  for (const detailWindow of windows) {
+    if (!detailWindow.isDestroyed()) {
+      detailWindow.close();
+    }
+  }
+}
+
+function notifyListWindow(channel, payload) {
+  if (listWindow && !listWindow.isDestroyed()) {
+    listWindow.webContents.send(channel, payload);
+  }
 }
 
 function stripHtml(value) {
@@ -241,12 +292,13 @@ function showMatchState(stateCode, startTime) {
   }
 }
 
-async function fetchScore(matchId = currentMatchId) {
-  const url = `${getHeaderUrl(matchId)}?r=${Date.now()}`;
+async function fetchScore(matchId) {
+  const normalizedMatchId = normalizeMatchInput(matchId);
+  const url = `${getHeaderUrl(normalizedMatchId)}?r=${Date.now()}`;
   const response = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      "Referer": `https://live.titan007.com/detail/${matchId}sb.htm`
+      "Referer": `https://live.titan007.com/detail/${normalizedMatchId}sb.htm`
     }
   });
 
@@ -255,7 +307,7 @@ async function fetchScore(matchId = currentMatchId) {
   }
 
   const text = await response.text();
-  return parseHeaderText(text, matchId);
+  return parseHeaderText(text, normalizedMatchId);
 }
 
 async function fetchLiveMatches() {
@@ -274,41 +326,9 @@ async function fetchLiveMatches() {
   return parseMatchListScript(script);
 }
 
-ipcMain.handle("score:get-config", () => ({
-  matchId: currentMatchId,
-  refreshIntervalMs: REFRESH_INTERVAL_MS,
-  sourceUrl: getHeaderUrl(currentMatchId)
+ipcMain.handle("app:get-config", () => ({
+  refreshIntervalMs: REFRESH_INTERVAL_MS
 }));
-
-ipcMain.handle("score:fetch", async () => {
-  try {
-    return { ok: true, data: await fetchScore() };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "未知错误" };
-  }
-});
-
-ipcMain.handle("score:set-match", async (_event, input) => {
-  try {
-    const nextMatchId = normalizeMatchInput(input);
-    const data = await fetchScore(nextMatchId);
-
-    currentMatchId = nextMatchId;
-    saveConfig();
-
-    return {
-      ok: true,
-      config: {
-        matchId: currentMatchId,
-        refreshIntervalMs: REFRESH_INTERVAL_MS,
-        sourceUrl: getHeaderUrl(currentMatchId)
-      },
-      data
-    };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "未知错误" };
-  }
-});
 
 ipcMain.handle("score:get-live-matches", async () => {
   try {
@@ -322,19 +342,33 @@ ipcMain.handle("score:get-live-matches", async () => {
   }
 });
 
-ipcMain.on("window:set-settings-open", (event, isOpen) => {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return;
+ipcMain.handle("match:open-detail", (_event, matchId) => {
+  try {
+    const normalizedMatchId = normalizeMatchInput(matchId);
+    createDetailWindow(normalizedMatchId);
+    return { ok: true, matchId: normalizedMatchId };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "未知错误" };
+  }
+});
+
+ipcMain.handle("match:get-window-match-id", (event) => {
+  return detailWindowMatchIds.get(event.sender.id) || "";
+});
+
+ipcMain.handle("match:fetch-detail", async (_event, matchId) => {
+  try {
+    return { ok: true, data: await fetchScore(matchId) };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "未知错误" };
+  }
 });
 
 ipcMain.on("window:close", (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close();
 });
 
-app.whenReady().then(() => {
-  loadConfig();
-  createWindow();
-});
+app.whenReady().then(createListWindow);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -344,6 +378,6 @@ app.on("window-all-closed", () => {
 
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createListWindow();
   }
 });

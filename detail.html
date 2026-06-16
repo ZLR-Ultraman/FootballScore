@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>单场比分</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="widget">
+      <section class="view active">
+        <header class="topbar">
+          <div class="title-block centered-title">
+            <div class="title" id="detailLeague">赛事</div>
+            <div class="subtitle" id="detailKickoff">--</div>
+          </div>
+          <div class="window-actions">
+            <button class="icon-button close-button" id="closeButton" type="button" aria-label="关闭" title="关闭">×</button>
+          </div>
+        </header>
+
+        <section class="scoreboard" aria-live="polite">
+          <div class="team home" id="homeTeam">主队</div>
+          <div class="score">
+            <span class="state" id="matchState">读取中</span>
+            <span class="score-line">
+              <span id="homeScore">-</span>
+              <span class="dash">:</span>
+              <span id="guestScore">-</span>
+            </span>
+          </div>
+          <div class="team guest" id="guestTeam">客队</div>
+        </section>
+
+        <section class="details">
+          <span id="weather">--</span>
+          <span id="venue">--</span>
+        </section>
+      </section>
+
+      <footer class="status">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">正在连接...</span>
+        <span class="refresh-time" id="refreshTime">--:--:--</span>
+      </footer>
+    </main>
+
+    <script src="./detailRenderer.js"></script>
+  </body>
+</html>
