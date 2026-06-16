@@ -368,6 +368,10 @@ ipcMain.on("window:close", (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close();
 });
 
+ipcMain.on("window:minimize", (event) => {
+  BrowserWindow.fromWebContents(event.sender)?.minimize();
+});
+
 app.whenReady().then(createListWindow);
 
 app.on("window-all-closed", () => {

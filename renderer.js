@@ -5,6 +5,7 @@ const elements = {
   statusText: document.getElementById("statusText"),
   refreshTime: document.getElementById("refreshTime"),
   closeButton: document.getElementById("closeButton"),
+  minimizeButton: document.getElementById("minimizeButton"),
   refreshListButton: document.getElementById("refreshListButton")
 };
 
@@ -13,6 +14,7 @@ let refreshTimer = null;
 const openedMatchIds = new Set();
 
 elements.closeButton.addEventListener("click", () => window.scoreApp.closeWindow());
+elements.minimizeButton.addEventListener("click", () => window.scoreApp.minimizeWindow());
 elements.refreshListButton.addEventListener("click", () => loadLiveMatchList({ manual: true }));
 window.scoreApp.onDetailClosed((matchId) => {
   openedMatchIds.delete(matchId);

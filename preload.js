@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld("scoreApp", {
     ipcRenderer.on("match:detail-closed", listener);
     return () => ipcRenderer.removeListener("match:detail-closed", listener);
   },
+  minimizeWindow: () => ipcRenderer.send("window:minimize"),
   closeWindow: () => ipcRenderer.send("window:close")
 });

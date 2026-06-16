@@ -11,6 +11,7 @@ const elements = {
   statusDot: document.getElementById("statusDot"),
   statusText: document.getElementById("statusText"),
   refreshTime: document.getElementById("refreshTime"),
+  minimizeButton: document.getElementById("minimizeButton"),
   closeButton: document.getElementById("closeButton")
 };
 
@@ -19,6 +20,7 @@ let config = null;
 let refreshTimer = null;
 
 elements.closeButton.addEventListener("click", () => window.scoreApp.closeWindow());
+elements.minimizeButton.addEventListener("click", () => window.scoreApp.minimizeWindow());
 
 function formatTime(isoString) {
   const date = isoString ? new Date(isoString) : new Date();
